@@ -16,9 +16,9 @@ projectID=""
 
 
 #AlignDir gives the path to the input bam files
-alignDir="/camp/stp/babs/working/boeings/Projects/130_SLL_MP_Elk_ko_RNAseq_timecourse/workdir/RSEM/Ensembl"
-GTFfile="/camp/stp/babs/working/data/genomes/mus_musculus/ensembl/GRCm38/release-86/gtf/Mus_musculus.GRCm38.86.rnaseqc.gtf"
-rRNAfile="/camp/stp/babs/working/data/genomes/mus_musculus/ensembl/GRCm38/release-86/gtf/Mus_musculus.GRCm38.86.rRNA.list"
+alignDir="/path/to/bamfiles/"
+GTFfile="path/to/Mus_musculus.GRCm38.86.rnaseqc.gtf"
+rRNAfile="path/to/Mus_musculus.GRCm38.86.rRNA.list"
 
 ## Input files are genome aligned BAM files.                                 ##
 ## Input bam files have to follow the following naming convention for this   ##
@@ -34,7 +34,7 @@ rRNAfile="/camp/stp/babs/working/data/genomes/mus_musculus/ensembl/GRCm38/releas
 
 samplesuffix="STAR.genome.bam"
 
-genome_fa="/camp/stp/babs/working/data/genomes/mus_musculus/ensembl/GRCm38/release-86/genome/Mus_musculus.GRCm38.dna_sm.primary_assembly.fa"
+genome_fa="path/to/genome/Mus_musculus.GRCm38.dna_sm.primary_assembly.fa"
 samples="DM_0_1
 DM_0_2
 DM_0_3
@@ -59,22 +59,6 @@ DM_2h_3
 DM_2h_4
 DM_2h_5
 DM_2h_6
-Elk14_0_1
-Elk14_0_2
-Elk14_0_3
-Elk14_0_4
-Elk14_30_1
-Elk14_30_2
-Elk14_30_3
-Elk14_30_4
-Elk14_60_1
-Elk14_60_2
-Elk14_60_3
-Elk14_60_4
-Elk14_120_1
-Elk14_120_2
-Elk14_120_3
-Elk14_120_4
 MT_0_1
 MT_0_2
 MT_0_3
