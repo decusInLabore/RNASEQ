@@ -223,10 +223,6 @@ for (i in 1:nrow(df.design)){
 
 sink()
 
-
-
-## Remove end of line characters ##
-print("Remove end of line characters: tr -d '\r' <create.fastq.softlinks.sh> conv.create.fastq.softlinks.sh")
 ## Run ##
 print("sh conv.create.fastq.softlinks.sh")
 
@@ -290,18 +286,6 @@ df.design <- create.trim.galore.shell.script(
 )
 
 
-# If this shell script is created on a windows machine, don't forget to remove the end of line '\r' characters
-print(
-    paste0(
-        "tr -d '\r' <", 
-        project.code, 
-        ".trimgalore.script.sh> conv.", 
-        project.code, 
-        ".trimgalore.script.sh"
-    )
-)
-
-
 # Write df.design to file so it can be re-read once the alignment is done
 setwd(localWorkDir)
 write.table(
@@ -346,14 +330,6 @@ create.alignment.shell.script(
     paired.end = paired.end
 )
 
-# If this shell script is created on a windows machine, don't forget to remove the end of line '\r' characters
-print(
-    paste0(
-        "tr -d '\r' <",
-        project.code,
-        ".fastqc.and.rsem.all.samples.sh> conv.fastqc.and.rsem.all.samples.sh"
-    )
-)
 
 # Run
 print(paste0("sh ", "conv.fastqc.and.rsem.all.samples.sh"))
@@ -375,17 +351,6 @@ create.rnaseqc.script(
     paired.end = paired.end
 )
 
-
-# If this shell script is created on a windows machine, don't forget to remove the end of line '\r' characters
-print(
-    paste0(
-        "tr -d '\r' <", 
-        project.code, 
-        ".rnaseqc.script.sh> conv.", 
-        project.code, 
-        ".rnaseqc.script.sh"
-    )
-)
 
 
 ###############################################################################
