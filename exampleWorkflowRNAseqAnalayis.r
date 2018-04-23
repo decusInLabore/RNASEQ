@@ -1309,12 +1309,14 @@ print(
 
 
 ###############################################################################
-## GO enrichment figure                                                ##
+## First GO enrichment figure                                                ##
+dfDat <- database.table
+topMaxCat <- 20
 
 selString <- "contrast_1"
 
 padjCutOff <- 0.01
-logFcCutOff <- 2
+logFcCutOff <- 1
 
 logFcCol <- names(dfDat)[grep(selString, names(dfDat))][grep("logFC", names(dfDat)[grep(selString, names(dfDat))])]
 lg10Col  <- names(dfDat)[grep(selString, names(dfDat))][grep("lg10p", names(dfDat)[grep(selString, names(dfDat))])]
@@ -1368,18 +1370,47 @@ setwd(localWorkDir)
 
 
 library(enrichR)
-
 dbs <- listEnrichrDbs()
-dbs <- c("GO_Biological_Process_2015")
+
+dbs <- c("GO_Biological_Process_2017", "GO_Molecular_Function_2017" ,"BioPlex_2017")
+
 PosEnriched <- enrichr(posTestGeneSet, dbs)
-dfPosEnriched <- PosEnriched$GO_Biological_Process_2015
+
+for (i in 1:length(dbs)){
+    dfTemp <- PosEnriched[[dbs[i]]]
+    
+    if (i ==1){
+        dfPosEnriched <- dfTemp
+    } else {
+        dfPosEnriched <- rbind(
+            dfPosEnriched, 
+            dfTemp
+        )
+    }
+    
+}
 
 dfPosEnriched[["log10FDR"]] <- -1*log10(dfPosEnriched$Adjusted.P.value)
 dfPosEnriched <- dfPosEnriched[order(-dfPosEnriched$log10FDR),]
 dfPosSel <- dfPosEnriched[1:topMaxCat,]
 
+## Negative Side ##
 NegEnriched <- enrichr(negTestGeneSet, dbs)
-dfNegEnriched <- NegEnriched$GO_Biological_Process_2015
+
+for (i in 1:length(dbs)){
+    dfTemp <- NegEnriched[[dbs[i]]]
+    
+    if (i ==1){
+        dfNegEnriched <- dfTemp
+    } else {
+        dfNegEnriched <- rbind(
+            dfNegEnriched, 
+            dfTemp
+        )
+    }
+    
+}
+
 
 dfNegEnriched[["log10FDR"]] <- -1*log10(dfNegEnriched$Adjusted.P.value)
 dfNegEnriched <- dfNegEnriched[order(-dfPosEnriched$log10FDR),]
@@ -1393,13 +1424,11 @@ dfSel <- rbind(
 
 dfSel <- dfSel[order(dfSel$log10FDR),]
 
-
-setwd(localWorkDir)
-pdf("ColNeg.vs.ColPos.go.enrichment.figure.pdf")
+pdf("sineg.vs.sipos.go.enrichment.figure.pdf")
 par(mar=c(5,20,4,2))
 
 barplot(
-    main = "Top10: ColPos vs. ColNeg (logFC > 2, padj < 0.01)",
+    main = "SiPos vs. SiNeg (logFC > 2, padj < 0.01)",
     xlim=c(-1.2*max(abs(dfSel$log10FDR)), 1.2*max(abs(dfSel$log10FDR))),
     dfSel$log10FDR,
     horiz = TRUE,
@@ -1420,7 +1449,7 @@ dev.off()
 
 
 
-##  Done with second figure                                                  ##
+##  Done with first figure                                                   ##
 ###############################################################################
 
 
