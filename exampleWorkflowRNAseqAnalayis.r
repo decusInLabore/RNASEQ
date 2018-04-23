@@ -1309,82 +1309,118 @@ print(
 
 
 ###############################################################################
-## Optional Module: Perform hypergeometric test                              ##
+## GO enrichment figure                                                ##
 
-## If performed on CAMP include:
-## include relevant functions ##
-#funPath <- paste0(
-#    "working/boeings/Stefan/protocol_files/github/boeings/packages/20180115.functions.SBwebtools.r"
-#)
+selString <- "contrast_1"
 
-#source(funPath)
+padjCutOff <- 0.01
+logFcCutOff <- 2
 
-## Set parameters ##
-# workdir <- paste0(
-#     "/camp/stp/babs/working/working/boeings/Projects/",
-#     "143_jsl_lw_IRDS_genes_cat_enrichments/workdir"
-#)
+logFcCol <- names(dfDat)[grep(selString, names(dfDat))][grep("logFC", names(dfDat)[grep(selString, names(dfDat))])]
+lg10Col  <- names(dfDat)[grep(selString, names(dfDat))][grep("lg10p", names(dfDat)[grep(selString, names(dfDat))])]
+padjCol  <- names(dfDat)[grep(selString, names(dfDat))][grep("padj", names(dfDat)[grep(selString, names(dfDat))])]
 
-# setwd(workdir)
-#host = "www.biologic-db.org"
-#dbname = "reference_categories_db_new"
-#db.user = "boeings"
-list.db.tables.in.db(
-    password = db.pwd
-)
+selVec <- c(gene.id.column, logFcCol, lg10Col, padjCol)
 
-dbtable.vec <- c("es_lab_categories", "SGP_from_GEO_up_down_combined")
+## Select data ##
 
+dfPosEnrichment <- unique(dfDat[
+    dfDat[,logFcCol] > logFcCutOff
+    & dfDat[,padjCol] < padjCutOff
+    & dfDat[,logFcCol] != 0,
+    selVec
+    ])
+nrow(dfPosEnrichment)
+
+dfNegEnrichment <- unique(dfDat[
+    dfDat[,logFcCol] < -1 * logFcCutOff
+    & dfDat[,padjCol] < padjCutOff
+    & dfDat[,logFcCol] != 0,
+    selVec
+    ])
+nrow(dfNegEnrichment)
 
 
 ## Get test gene set ##
-testGeneSet <- as.vector(
+posTestGeneSet <- as.vector(
     unique(
-    database.table[
-        database.table$contrast_2_logFC_siTFAP2C1Only_vs_Ctrl < -0.5 &
-            database.table$contrast_4_logFC_nonAligned_vs_aligned < -1,
-        gene.id.column
-    ]
+        dfPosEnrichment[,gene.id.column]
+    )
+)
+
+negTestGeneSet <- as.vector(
+    unique(
+        dfNegEnrichment[,gene.id.column]
     )
 )
 
 ## Get background gene set ##
-
 backgroundGeneVec <- as.vector(
-    unique(database.table[, gene.id.column])
+    unique(
+        dfDat[,gene.id.column]
+    )
 )
 
-
-backgroundGeneVec <- as.vector(
-    unique(append(testGeneSet, backgroundGeneVec))
-)
 
 ## Done retrieving background genes
-
-
 ## Creating enrichment dataframe ##
 setwd(localWorkDir)
 
-dfRes <- surveyDbCategories(
-    genesOfInterestVec = testGeneSet,
-    backgroundGeneVec = backgroundGeneVec,
-    host = "www.biologic-db.org",
-    dbname = ref.cat.db,
-    db.pwd = db.pwd,
-    db.user = db.user,
-    dbtable.vec = dbtable.vec,
-    gene.id.column =  "hgnc_symbol",
-    project.code = paste0(project.code, ".TFAP2Cdown.algnmt.down"),
-    NminGenesInCat = 1
+
+library(enrichR)
+
+dbs <- listEnrichrDbs()
+dbs <- c("GO_Biological_Process_2015")
+PosEnriched <- enrichr(posTestGeneSet, dbs)
+dfPosEnriched <- PosEnriched$GO_Biological_Process_2015
+
+dfPosEnriched[["log10FDR"]] <- -1*log10(dfPosEnriched$Adjusted.P.value)
+dfPosEnriched <- dfPosEnriched[order(-dfPosEnriched$log10FDR),]
+dfPosSel <- dfPosEnriched[1:topMaxCat,]
+
+NegEnriched <- enrichr(negTestGeneSet, dbs)
+dfNegEnriched <- NegEnriched$GO_Biological_Process_2015
+
+dfNegEnriched[["log10FDR"]] <- -1*log10(dfNegEnriched$Adjusted.P.value)
+dfNegEnriched <- dfNegEnriched[order(-dfPosEnriched$log10FDR),]
+dfNegSel <- dfNegEnriched[1:topMaxCat,]
+dfNegSel$log10FDR <- -1* dfNegSel$log10FDR
+
+dfSel <- rbind(
+    dfNegSel, 
+    dfPosSel
 )
 
-write.table(
-    dfRes,
-    paste0(project.code, ".hypergeometric.test.result.txt"),
-    row.names = FALSE,
-    sep = "\t"
+dfSel <- dfSel[order(dfSel$log10FDR),]
+
+
+setwd(localWorkDir)
+pdf("ColNeg.vs.ColPos.go.enrichment.figure.pdf")
+par(mar=c(5,20,4,2))
+
+barplot(
+    main = "Top10: ColPos vs. ColNeg (logFC > 2, padj < 0.01)",
+    xlim=c(-1.2*max(abs(dfSel$log10FDR)), 1.2*max(abs(dfSel$log10FDR))),
+    dfSel$log10FDR,
+    horiz = TRUE,
+    names.arg = dfSel$Term,
+    las=2,
+    xaxt="n",
+    cex.names = 0.5,
+    col = c(rep("blue",10), rep("yellow",10)),
+    xlab = "-log10(FDR)"
 )
-## Done: Optional module hypergeometric test                                 ##
+
+axis(1,  col.axis="black", las=1)
+abline(v=log10(0.05), col="red", lty=2)
+abline(v=-1*log10(0.05), col="red", lty=2)
+abline(v=0)
+box()
+dev.off()
+
+
+
+##  Done with second figure                                                  ##
 ###############################################################################
 
 
